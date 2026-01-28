@@ -1,3 +1,4 @@
+![Foundry Tests](https://github.com/mt1ns1de/sovereign-switch/actions/workflows/test.yml/badge.svg)
 # Sovereign Switch (Base Heritage Module)
 
 A minimalist, high-integrity Solidity mixin for permissionless asset recovery.
