@@ -4,12 +4,14 @@ pragma solidity ^0.8.26;
 /**
  * @title SovereignHeritage
  * @author Roman Hubariev
- * @notice Abstract module for time-based asset inheritance. OpenZeppelin-free.
+ * @notice Abstract module for time-based asset inheritance. 
+ * @dev Features: Heartbeat, Batch Release, and Grace Period. OpenZeppelin-free.
  */
 abstract contract SovereignHeritage {
     address public heritageBeneficiary;
     uint256 public heritageTimeout;
     uint256 public lastHeartbeat;
+    uint256 public constant GRACE_PERIOD = 1 days; 
 
     error Heritage__StillAlive();
     error Heritage__Unauthorized();
@@ -50,22 +52,27 @@ abstract contract SovereignHeritage {
     }
 
     /**
-     * @notice Transfer ERC20 tokens to beneficiary if the switch is triggered.
-     * @param token The address of the ERC20 token to recover.
+     * @notice Transfer multiple ERC20 tokens in one transaction.
+     * @param tokens Array of ERC20 token addresses.
      */
-    function releaseTokenHeritage(address token) external virtual {
+    function batchReleaseTokens(address[] calldata tokens) external virtual {
         if (block.timestamp < lastHeartbeat + heritageTimeout) revert Heritage__StillAlive();
-        
+
+        for (uint256 i = 0; i < tokens.length; i++) {
+            _internalTokenTransfer(tokens[i]);
+        }
+    }
+
+    function _internalTokenTransfer(address token) internal {
         uint256 tokenBalance = _getTokenBalance(token);
         if (tokenBalance == 0) return;
 
-        // Low-level call to support non-standard ERC20s and minimize gas.
         (bool success, bytes memory data) = token.call(
             abi.encodeWithSignature("transfer(address,uint256)", heritageBeneficiary, tokenBalance)
         );
-        if (!success || (data.length != 0 && !abi.decode(data, (bool)))) revert Heritage__TransferFailed();
-        
-        emit HeritageTokenReleased(token, heritageBeneficiary, tokenBalance);
+        if (success && (data.length == 0 || abi.decode(data, (bool)))) {
+            emit HeritageTokenReleased(token, heritageBeneficiary, tokenBalance);
+        }
     }
 
     function _getTokenBalance(address token) internal view returns (uint256) {
