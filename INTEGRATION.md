@@ -7,7 +7,7 @@ Minimalist guide to implementing time-based inheritance.
 1. Copy `src/SovereignHeritage.sol` to your project.
 2. Inherit and link your ownership logic.
 
-\`\`\`solidity
+```solidity
 import "./SovereignHeritage.sol";
 
 contract Vault is SovereignHeritage {
@@ -26,10 +26,3 @@ contract Vault is SovereignHeritage {
         // Resets timer on every call
     }
 }
-\`\`\`
-
-## Core Mechanics
-
-- **Heartbeat:** `renewHeartbeat` modifier updates `lastHeartbeat` if called by owner.
-- **Batch Release:** `batchReleaseTokens(address[] tokens)` claims multiple assets in one TX.
-- **Zero-Dependency:** No external libraries. Raw EVM calls only.
